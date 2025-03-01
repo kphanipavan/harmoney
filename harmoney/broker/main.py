@@ -1,12 +1,12 @@
 import asyncio
-from typing import Dict
+import base64
 from uvicorn import Config, Server
 import fastapi
-from threading import Thread
 
 from uvicorn.config import LOG_LEVELS
+import pickle as pkl
 
-from callSpec import CallPacket
+from callSpec import CallPacket, ClientPacket
 
 
 class Broker:
@@ -24,21 +24,25 @@ class Broker:
 
         print("started")
         while True:
-            data = await self.taskQueue.get()
+            data:CallPacket = await self.taskQueue.get()
             # await asyncio.sleep(1)
-            await wsConnection.send_text(data)
+            await wsConnection.send_bytes(pkl.dumps(data))
+
             print(await wsConnection.receive())
             print(f"left: {self.taskQueue.qsize()}")
 
-    async def clientRequest(self, data:CallPacket):
+    async def clientRequest(self, data:ClientPacket):
         print(data)
+        callPacket = pkl.loads(base64.b64decode(data.data))
+        await self.taskQueue.put(callPacket)
+        print(self.taskQueue.qsize)
         # await self.taskQueue.put(name)
 
 def runBroker():
     br = Broker()
     app = fastapi.FastAPI()
     app.include_router(br.router)
-    serverConf = Config(app = app, host="0.0.0.0", port=7732, log_level=LOG_LEVELS["trace"], ws_ping_interval=10, ws_ping_timeout=None)
+    serverConf = Config(app = app, host="0.0.0.0", port=7732, log_level=LOG_LEVELS["debug"], ws_ping_interval=10, ws_ping_timeout=None)
     server = Server(config=serverConf)
     server.run()
 

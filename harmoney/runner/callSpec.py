@@ -4,5 +4,4 @@ import pydantic
 
 class CallPacket(pydantic.BaseModel):
     procedure: str
-    simpleObjects: Dict[str, Any] = {}
-    byteObjects: Dict[str, bytes] = {}
+    data: Dict[str, Any ] = {}
