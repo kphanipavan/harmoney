@@ -4,41 +4,52 @@ from uvicorn import Config, Server
 import fastapi
 from uvicorn.config import LOG_LEVELS
 import pickle as pkl
-from callSpec import CallPacket, ClientPacket
+import uuid
+from ._callSpec import _CallPacket, _ClientPacket
 
 __all__ = ["runBroker"]
 
-class Broker:
+class _Broker:
     def __init__(self) -> None:
         self.router = fastapi.APIRouter()
         self.router.add_api_websocket_route("/reg", self.registerRunner)
         self.router.add_api_route("/cliReq", self.clientRequest, methods=["POST"])
         self.taskQueue = asyncio.Queue()
         self.runnerCount=0
+        self.returnDict = {}
 
 
     async def registerRunner(self,  wsConnection: fastapi.WebSocket):
         await wsConnection.accept()
         await wsConnection.send_text(str(self.runnerCount))
-        methods=await wsConnection.receive_json()
+        methods=await wsConnection.receive()
+        methods = pkl.loads(base64.b64decode(methods["text"]))
         print(f"Runner Connected with ID: {self.runnerCount}, Methods: {methods['methods']}")
         self.runnerCount+=1
         while True:
-            data:CallPacket = await self.taskQueue.get()
+            reqID, data  = await self.taskQueue.get()
             # await asyncio.sleep(1)
             await wsConnection.send_bytes(pkl.dumps(data))
             retValue = await wsConnection.receive()
+            # print(retValue)
+            self.returnDict[reqID] = retValue["bytes"]
+            # print(retValue["bytes"])
             print(f"Tasks left: {self.taskQueue.qsize()}")
 
-    async def clientRequest(self, data:ClientPacket):
-        print(data)
+    async def clientRequest(self, data:_ClientPacket):
+        # print(data)
+        reqID = uuid.uuid4().hex
         callPacket = pkl.loads(base64.b64decode(data.data))
-        await self.taskQueue.put(callPacket)
-        print(self.taskQueue.qsize)
-        # await self.taskQueue.put(name)
+        await self.taskQueue.put((reqID, callPacket))
+        # print(self.taskQueue.qsize)
+        while reqID not in self.returnDict:
+            await asyncio.sleep(0.5)
+        await asyncio.sleep(1)
+        returnValue = self.returnDict[reqID]
+        return returnValue
 
 def runBroker(host, port):
-    br = Broker()
+    br = _Broker()
     app = fastapi.FastAPI()
     app.include_router(br.router)
     serverConf = Config(app = app, host=host,  port=port, log_level=LOG_LEVELS["warning"], ws_ping_interval=10, ws_ping_timeout=None)

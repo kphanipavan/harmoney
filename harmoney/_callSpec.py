@@ -1,10 +1,9 @@
 from typing import Any, Dict
-
 import pydantic
 
-class CallPacket(pydantic.BaseModel):
+class _CallPacket(pydantic.BaseModel):
     procedure: str
     data: Dict[str, Any] = {}
 
-class ClientPacket(pydantic.BaseModel):
+class _ClientPacket(pydantic.BaseModel):
     data: str

@@ -1,2 +1,4 @@
-msgspec
 fastapi
+pydantic
+websockets
+requests
