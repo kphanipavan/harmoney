@@ -5,7 +5,7 @@ import fastapi
 from uvicorn.config import LOG_LEVELS
 import pickle as pkl
 import uuid
-from ._callSpec import _CallPacket, _ClientPacket
+from ._callSpec import  _ClientPacket
 
 __all__ = ["startBroker"]
 
