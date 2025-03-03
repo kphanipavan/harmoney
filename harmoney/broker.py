@@ -7,7 +7,7 @@ import pickle as pkl
 import uuid
 from ._callSpec import _CallPacket, _ClientPacket
 
-__all__ = ["runBroker"]
+__all__ = ["startBroker"]
 
 class _Broker:
     def __init__(self, pollingDelay=0.5) -> None:
@@ -44,7 +44,7 @@ class _Broker:
         returnValue = self.returnDict[reqID]
         return returnValue
 
-def runBroker(host, port, pollingDelay=0.1):
+def startBroker(host, port, pollingDelay=0.1):
     br = _Broker(pollingDelay=pollingDelay)
     app = fastapi.FastAPI()
     app.include_router(br.router)
