@@ -1,4 +1,4 @@
-# harmoney
+# harmoney [![DOI](https://zenodo.org/badge/942561957.svg)](https://doi.org/10.5281/zenodo.14965939)
 
 Distributed Function Caller Framework for Python
 
