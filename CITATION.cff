@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Kambhampati"
+  given-names: "Phani Pavan"
+  orcid: "https://orcid.org/0000-0001-7197-728X"
+title: "Harmoney: Simple Distributed Function Calling Framework"
+version: 0.1.0
+doi: 10.5281/zenodo.14965940
+date-released: 2025-03-03
+url: "https://github.com/kphanipavan/harmoney"
