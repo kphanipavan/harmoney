@@ -18,8 +18,8 @@ async def _send(funcMap: Dict[str, Any], url):
             print(f"Starting Runner, ID: {id}")
             await w.send(base64.b64encode(pkl.dumps({"methods":list(funcMap.keys())})).decode("utf-8"))
             while True:
-                counter+=1
                 packetBytes=await w.recv()
+                counter+=1
                 callPk:_CallPacket = pkl.loads(packetBytes)
                 print("-"*50 + f"\nRunning: {callPk.procedure}\nArgs: {callPk.data}\nCounter: {counter}\n" + "-"*50)
                 funcOutput = funcMap[callPk.procedure](**callPk.data)

@@ -7,9 +7,9 @@ import pickle as pkl
 import uuid
 from ._callSpec import  _ClientPacket
 
-__all__ = ["startBroker"]
+__all__ = ["startRouter"]
 
-class _Broker:
+class _Router:
     def __init__(self, pollingDelay=0.5) -> None:
         self.router = fastapi.APIRouter()
         self.router.add_api_websocket_route("/reg", self.registerRunner)
@@ -44,12 +44,11 @@ class _Broker:
         returnValue = self.returnDict[reqID]
         return returnValue
 
-def startBroker(host, port, pollingDelay=0.1):
-    br = _Broker(pollingDelay=pollingDelay)
+def startRouter(host, port, pollingDelay=0.1, logLevel=3):
+    br = _Router(pollingDelay=pollingDelay)
     app = fastapi.FastAPI()
     app.include_router(br.router)
-    serverConf = Config(app = app, host=host,  port=port, log_level=LOG_LEVELS["warning"], ws_ping_interval=10, ws_ping_timeout=None)
+    level = list(LOG_LEVELS.keys())[logLevel]
+    serverConf = Config(app = app, host=host,  port=port, log_level=LOG_LEVELS[level], ws_ping_interval=10, ws_ping_timeout=None)
     server = Server(config=serverConf)
     server.run()
-
-# runBroker()

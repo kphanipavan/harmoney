@@ -22,9 +22,9 @@ Requires 3 scripts: Client, Broker and Runner
 Let broker's IP be `192.168.0.110` and port be `7732`
 ```python
 
-from harmoney import broker as bro
+from harmoney import router as rou
 
-bro.runBroker("0.0.0.0", 7732)
+ro.startRouter("0.0.0.0", 7732)
 ```
 
 - Runner performs the calculations, should contain function definitions. Connects to broker using broker's IP.

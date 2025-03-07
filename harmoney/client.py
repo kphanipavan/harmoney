@@ -37,7 +37,7 @@ class Client:
         return self.returnValues
 
     def _threadWorker(self, callIDX, payload):
-        print(callIDX, payload)
+        # print(callIDX, payload)
         ret = self.singleCall(function=payload[0], **payload[1])
         self.returnValues[callIDX] = ret
         self.done[callIDX] =1
