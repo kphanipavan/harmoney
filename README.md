@@ -59,3 +59,4 @@ print(retVal)
 TODO:
 - [ ] Error catching, keeping the connection to the broker
 - [ ] Error info should return to the client
+- [ ] Remove dependency on fastapi and requests, move to completely to websockets
