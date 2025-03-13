@@ -1,6 +1,5 @@
 import base64
 from typing import Any, Dict
-# from fastapi import WebSocketException
 from websockets.asyncio import client as WSC
 from websockets.exceptions import WebSocketException
 import asyncio
@@ -10,6 +9,10 @@ from ._callSpec import _CallPacket
 __all__ = ["startRunner"]
 
 async def _send(funcMap: Dict[str, Any], url):
+    """
+    Main logic funcion, connects to the router, takes the incoming task, executes and returns the result.
+    To improve error handling from the mapped function side.
+    """
     counter=0
     async with WSC.connect(url, open_timeout=None, ping_interval=10, ping_timeout=None ) as w:
         try:
@@ -29,4 +32,7 @@ async def _send(funcMap: Dict[str, Any], url):
             await w.close()
 
 def startRunner(funcMapping, host, port):
+    """
+    Main function to call from the user code.
+    """
     asyncio.run(_send(funcMapping, f"ws://{host}:{port}/reg"))

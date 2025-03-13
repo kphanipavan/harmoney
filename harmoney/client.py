@@ -1,43 +1,44 @@
-import time
-import requests as req
+import asyncio
 from ._callSpec import _CallPacket
 import pickle as pkl
-import base64
-from threading import Thread
+from websockets.asyncio import client as WSC
 
 __all__ = ["Client"]
 
 class Client:
     def __init__(self, host, port) -> None:
-        self._url = f"http://{host}:{port}/cliReq"
+        self._wsURL = f"ws://{host}:{port}/cliReq/"
         self.tasks = []
 
     def singleCall(self, function, **kwargs):
-        callPacket = _CallPacket(procedure=function, data=kwargs)
-        payload = {"data": base64.b64encode(pkl.dumps(callPacket)).decode("utf-8")}
-        resp = req.post(self._url, json=payload)
-        return pkl.loads(base64.b64decode(resp.text))
+        """
+        Performs single call with the provided function and args
+        """
+        self.addCall(_CallPacket(procedure=function, data=kwargs))
+        return self.runAllCalls()[0]
 
     def addCall(self, function, **kwargs):
-        self.tasks.append((function, kwargs))
-        print(f"Total in Queue: {len(self.tasks)}")
+        """
+        Adds a task to call queue.
+        """
+        self.tasks.append((_CallPacket(procedure=function, data=kwargs)))
+
+    async def _runAllCalls(self, callDelay=0.01):
+        """
+        Logic function to communicate with the router.
+        """
+        print(f"Total Calls: {len(self.tasks)}")
+        async with WSC.connect(self._wsURL+f"{len(self.tasks)}", open_timeout=None, ping_interval=10, ping_timeout=None) as ws:
+            ackCount = int(await ws.recv())
+            assert ackCount == len(self.tasks), "Comms not proper..."
+            await ws.send(pkl.dumps(self.tasks))
+            returnData = await ws.recv()
+            returnData = pkl.loads(returnData)
+            self.tasks=[]
+            return returnData
 
     def runAllCalls(self, callDelay=0.01):
-        if len(self.tasks) == 0:
-            return []
-        self.returnValues = [0]*len(self.tasks)
-        self.done = [0] * len(self.tasks)
-        for callIDX in range(len(self.tasks)):
-            t = Thread(target=self._threadWorker, args=[callIDX, self.tasks[callIDX]])
-            t.start()
-            time.sleep(callDelay)
-        while not all(self.done):
-            time.sleep(1)
-        self.tasks = []
-        return self.returnValues
-
-    def _threadWorker(self, callIDX, payload):
-        # print(callIDX, payload)
-        ret = self.singleCall(function=payload[0], **payload[1])
-        self.returnValues[callIDX] = ret
-        self.done[callIDX] =1
+        """
+        User facing function to remotely execute queued tasks.
+        """
+        return asyncio.run(self._runAllCalls(callDelay=callDelay))
