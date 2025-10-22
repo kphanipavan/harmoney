@@ -24,7 +24,7 @@ Let broker's IP be `192.168.0.110` and port be `7732`
 
 from harmoney import router as rou
 
-ro.startRouter("0.0.0.0", 7732)
+rou.startRouter("0.0.0.0", 7732)
 ```
 
 - Runner performs the calculations, should contain function definitions. Connects to broker using broker's IP.
